@@ -15,7 +15,7 @@ class NoteDialog {
         title: const Text('새 메모 작성'),
         content: TextField(
           controller: controller,
-          maxLines: 6, // 🔑 입력창 높이 제한 (6줄까지만 확장)
+          maxLines: 6,
           textAlignVertical: TextAlignVertical.top,
           decoration: const InputDecoration(
             hintText: '메모를 입력하세요',
@@ -50,7 +50,7 @@ class NoteDialog {
       ),
     );
 
-    controller.dispose(); // 🔑 다이얼로그 닫히면 해제
+    controller.dispose();
   }
 
   // 선택 날짜의 메모 목록

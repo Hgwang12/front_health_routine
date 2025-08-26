@@ -24,6 +24,10 @@ class _RoutineCardState extends State<RoutineCard> {
     _selectedDay = DateTime.now();
   }
 
+  List<String> _getEventsForDay(DateTime day) {
+    return _notes[DateTime(day.year, day.month, day.day)] ?? [];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -31,7 +35,7 @@ class _RoutineCardState extends State<RoutineCard> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: TableCalendar(
+        child: TableCalendar<String>(
           firstDay: DateTime.utc(2020, 1, 1),
           lastDay: DateTime.utc(2030, 12, 31),
           focusedDay: _focusedDay,
@@ -46,18 +50,45 @@ class _RoutineCardState extends State<RoutineCard> {
             NoteDialog.showList(
               context,
               day: selectedDay,
-              notes: _notes[selectedDay] ?? [],
+              notes: _getEventsForDay(selectedDay),
               onAdd: (text) {
                 setState(() {
-                  if (_notes[selectedDay] == null) {
-                    _notes[selectedDay] = [text];
+                  final key = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
+                  if (_notes[key] == null) {
+                    _notes[key] = [text];
                   } else {
-                    _notes[selectedDay]!.add(text); // 기존 메모 뒤에 추가
+                    _notes[key]!.add(text);
                   }
                 });
               },
             );
           },
+          eventLoader: _getEventsForDay,
+          calendarBuilders: CalendarBuilders(
+            markerBuilder: (context, day, events) {
+              if (events.isNotEmpty) {
+                return Positioned(
+                  bottom: 4,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(
+                      events.length.clamp(0, 3), // 최대 3개 점까지만 표시
+                          (index) => Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 1.5),
+                        width: 6,
+                        height: 6,
+                        decoration: const BoxDecoration(
+                          color: Colors.purple, // 점 색상
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }
+              return null;
+            },
+          ),
           calendarStyle: CalendarStyle(
             todayDecoration: BoxDecoration(
               color: AppColors.primary,
