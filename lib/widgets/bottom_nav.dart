@@ -33,7 +33,7 @@ class _BottomNavState extends State<BottomNav> {
       items: const [
         BottomNavigationBarItem(
           icon: Icon(Icons.fitness_center),
-          label: '루틴',
+          label: '기록',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.home),
