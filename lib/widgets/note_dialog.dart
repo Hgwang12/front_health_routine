@@ -19,7 +19,7 @@ class NoteDialog {
           maxLines: 6,
           textAlignVertical: TextAlignVertical.top,
           decoration: const InputDecoration(
-            hintText: '메모를 입력하세요',
+            hintText: '오늘의 운동을 기록하세요',
             border: InputBorder.none,
             alignLabelWithHint: true,
           ),
