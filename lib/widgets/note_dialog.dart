@@ -6,25 +6,21 @@ class NoteDialog {
       BuildContext context, {
         required Function(String) onSave,
       }) async {
-    TextEditingController controller = TextEditingController();
+    final controller = TextEditingController();
 
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.white, // 배경 하얀색
+        backgroundColor: Colors.white,
         title: const Text('새 메모 작성'),
-        content: SizedBox(
-          height: 180,
-          child: TextField(
-            controller: controller,
-            maxLines: null,
-            expands: true,
-            textAlignVertical: TextAlignVertical.top,
-            decoration: const InputDecoration(
-              hintText: '메모를 입력하세요',
-              border: InputBorder.none,
-              alignLabelWithHint: true,
-            ),
+        content: TextField(
+          controller: controller,
+          maxLines: 6, // 🔑 입력창 높이 제한 (6줄까지만 확장)
+          textAlignVertical: TextAlignVertical.top,
+          decoration: const InputDecoration(
+            hintText: '메모를 입력하세요',
+            border: InputBorder.none,
+            alignLabelWithHint: true,
           ),
         ),
         actions: [
@@ -32,12 +28,12 @@ class NoteDialog {
             onPressed: () => Navigator.pop(context),
             child: const Text(
               '취소',
-              style: TextStyle(color: Colors.black), // 텍스트 검은색
+              style: TextStyle(color: Colors.black),
             ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue[300], // 연한 파랑
+              backgroundColor: Colors.blue[300],
             ),
             onPressed: () {
               if (controller.text.trim().isNotEmpty) {
@@ -47,12 +43,14 @@ class NoteDialog {
             },
             child: const Text(
               '저장',
-              style: TextStyle(color: Colors.black), // 텍스트 검은색
+              style: TextStyle(color: Colors.black),
             ),
           ),
         ],
       ),
     );
+
+    controller.dispose(); // 🔑 다이얼로그 닫히면 해제
   }
 
   // 선택 날짜의 메모 목록
@@ -65,17 +63,17 @@ class NoteDialog {
     await showDialog(
       context: context,
       builder: (context) => Dialog(
-        backgroundColor: Colors.transparent, // 다이얼로그 배경 투명
+        backgroundColor: Colors.transparent,
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(16), // 위아래 모두 라운드
+          borderRadius: BorderRadius.circular(16),
           child: Container(
             width: 350,
             height: 400,
-            color: Colors.white, // 내부 배경 하얀색
+            color: Colors.white,
             child: Column(
               children: [
                 // 상단: 날짜 + X 버튼 + 연필 아이콘
-                Container(
+                Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -105,25 +103,22 @@ class NoteDialog {
                 const Divider(height: 1),
                 // 메모 목록
                 Expanded(
-                  child: Container(
-                    color: Colors.white,
-                    child: notes.isNotEmpty
-                        ? ListView.builder(
-                      padding: const EdgeInsets.all(8),
-                      itemCount: notes.length,
-                      itemBuilder: (context, index) {
-                        return Card(
-                          color: Colors.white70,
-                          margin: const EdgeInsets.symmetric(vertical: 4),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8),
-                            child: Text(notes[index]),
-                          ),
-                        );
-                      },
-                    )
-                        : const Center(child: Text('작성된 메모가 없습니다')),
-                  ),
+                  child: notes.isNotEmpty
+                      ? ListView.builder(
+                    padding: const EdgeInsets.all(8),
+                    itemCount: notes.length,
+                    itemBuilder: (context, index) {
+                      return Card(
+                        color: Colors.white70, // 메모 카드 흰색
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: Text(notes[index]),
+                        ),
+                      );
+                    },
+                  )
+                      : const Center(child: Text('작성된 메모가 없습니다')),
                 ),
               ],
             ),
