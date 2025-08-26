@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 
 class NoteDialog {
-  // 새 메모 작성
+  // 새 메모 작성 (수정할 때도 같이 씀)
   static Future<void> showEditor(
       BuildContext context, {
         required Function(String) onSave,
+        String? initialText, // 수정 시 기존 텍스트
       }) async {
-    final controller = TextEditingController();
+    final controller = TextEditingController(text: initialText ?? "");
 
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.white,
-        title: const Text('새 메모 작성'),
+        title: Text(initialText == null ? '새 메모 작성' : '메모 수정'),
         content: TextField(
           controller: controller,
           maxLines: 6,
@@ -59,6 +60,8 @@ class NoteDialog {
         required DateTime day,
         required List<String> notes,
         required Function(String) onAdd,
+        required Function(int, String) onEdit, // 수정 콜백
+        required Function(int) onDelete, // 삭제 콜백
       }) async {
     await showDialog(
       context: context,
@@ -74,7 +77,8 @@ class NoteDialog {
               children: [
                 // 상단: 날짜 + X 버튼 + 연필 아이콘
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -109,11 +113,41 @@ class NoteDialog {
                     itemCount: notes.length,
                     itemBuilder: (context, index) {
                       return Card(
-                        color: Colors.white70, // 메모 카드 흰색
-                        margin: const EdgeInsets.symmetric(vertical: 4),
-                        child: Padding(
-                          padding: const EdgeInsets.all(8),
-                          child: Text(notes[index]),
+                        color: Colors.white70,
+                        margin:
+                        const EdgeInsets.symmetric(vertical: 4),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.only(left: 8, right: 0),
+                          title: Text(notes[index]),
+                          trailing: PopupMenuButton<String>(
+                            padding: EdgeInsets.zero,
+                            icon: const Icon(Icons.more_vert),
+                            onSelected: (value) {
+                              if (value == 'edit') {
+                                // 수정
+                                showEditor(
+                                  context,
+                                  initialText: notes[index],
+                                  onSave: (newText) {
+                                    onEdit(index, newText);
+                                  },
+                                );
+                              } else if (value == 'delete') {
+                                // 삭제
+                                onDelete(index);
+                              }
+                            },
+                            itemBuilder: (context) => [
+                              const PopupMenuItem(
+                                value: 'edit',
+                                child: Text('수정'),
+                              ),
+                              const PopupMenuItem(
+                                value: 'delete',
+                                child: Text('삭제'),
+                              ),
+                            ],
+                          ),
                         ),
                       );
                     },

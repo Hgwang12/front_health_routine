@@ -14,8 +14,8 @@ class _RoutineCardState extends State<RoutineCard> {
   late DateTime _focusedDay;
   late DateTime _selectedDay;
 
-  // 날짜별 메모 다중 저장
-  Map<DateTime, List<String>> _notes = {};
+  // 날짜별 메모 목록
+  final Map<DateTime, List<String>> _notes = {};
 
   @override
   void initState() {
@@ -24,8 +24,12 @@ class _RoutineCardState extends State<RoutineCard> {
     _selectedDay = DateTime.now();
   }
 
+  // 날짜 키 정규화(시/분/초 제거)
+  DateTime _dayKey(DateTime d) => DateTime(d.year, d.month, d.day);
+
+  // 해당 날짜의 메모 목록
   List<String> _getEventsForDay(DateTime day) {
-    return _notes[DateTime(day.year, day.month, day.day)] ?? [];
+    return _notes[_dayKey(day)] ?? [];
   }
 
   @override
@@ -46,49 +50,72 @@ class _RoutineCardState extends State<RoutineCard> {
               _focusedDay = focusedDay;
             });
 
-            // 선택 날짜의 메모 목록 팝업
+            final key = _dayKey(selectedDay);
+
+            // 메모 목록 다이얼로그 호출 (추가/수정/삭제 콜백 연결)
             NoteDialog.showList(
               context,
               day: selectedDay,
               notes: _getEventsForDay(selectedDay),
               onAdd: (text) {
                 setState(() {
-                  final key = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
-                  if (_notes[key] == null) {
-                    _notes[key] = [text];
-                  } else {
-                    _notes[key]!.add(text);
+                  _notes.putIfAbsent(key, () => []);
+                  _notes[key]!.add(text);
+                });
+              },
+              onEdit: (index, newText) {
+                setState(() {
+                  final list = _notes[key];
+                  if (list != null && index >= 0 && index < list.length) {
+                    list[index] = newText;
+                  }
+                });
+              },
+              onDelete: (index) {
+                setState(() {
+                  final list = _notes[key];
+                  if (list != null && index >= 0 && index < list.length) {
+                    list.removeAt(index);
+                    if (list.isEmpty) {
+                      _notes.remove(key);
+                    }
                   }
                 });
               },
             );
           },
+
+          // 메모 개수 로딩(점 표시용)
           eventLoader: _getEventsForDay,
+
+          // 날짜 아래 점(메모 수 만큼, 최대 3개)
           calendarBuilders: CalendarBuilders(
             markerBuilder: (context, day, events) {
-              if (events.isNotEmpty) {
-                return Positioned(
-                  bottom: 4,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(
-                      events.length.clamp(0, 3), // 최대 3개 점까지만 표시
-                          (index) => Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 1.5),
-                        width: 6,
-                        height: 6,
-                        decoration: const BoxDecoration(
-                          color: Colors.purple, // 점 색상
-                          shape: BoxShape.circle,
-                        ),
+              if (events.isEmpty) return null;
+              final count = events.length.clamp(0, 3);
+              return Positioned(
+                bottom: 4,
+                left: 0,
+                right: 0,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(
+                    count,
+                        (_) => Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 1.5),
+                      width: 6,
+                      height: 6,
+                      decoration: const BoxDecoration(
+                        color: Colors.purple, // 점 색상
+                        shape: BoxShape.circle,
                       ),
                     ),
                   ),
-                );
-              }
-              return null;
+                ),
+              );
             },
           ),
+
           calendarStyle: CalendarStyle(
             todayDecoration: BoxDecoration(
               color: AppColors.primary,
