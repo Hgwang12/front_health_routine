@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 
+class Goal {
+  final String text;
+  bool done;
+  Goal(this.text, {this.done = false});
+}
+
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
 
@@ -8,13 +14,20 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  List<Map<String, dynamic>> _goals = []; // { 'text': 목표내용, 'done': bool }
+  final List<Goal> _goals = [];
+  final TextEditingController _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    int doneCount = _goals.where((g) => g['done'] == true).length;
-    int total = _goals.length;
-    double progress = total > 0 ? doneCount / total : 0;
+    final doneCount = _goals.where((g) => g.done).length;
+    final total = _goals.length;
+    final double progress = total > 0 ? doneCount / total : 0;
 
     return Scaffold(
       appBar: AppBar(
@@ -55,6 +68,7 @@ class _HomeState extends State<Home> {
                       vertical: 25, horizontal: 16),
                   itemCount: _goals.length,
                   itemBuilder: (context, index) {
+                    final goal = _goals[index];
                     return Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -67,33 +81,33 @@ class _HomeState extends State<Home> {
                         ),
                         Expanded(
                           child: Text(
-                            _goals[index]['text'],
+                            goal.text,
                             style: TextStyle(
                               fontSize: 16,
-                              decoration: _goals[index]['done']
+                              decoration: goal.done
                                   ? TextDecoration.lineThrough
                                   : null,
-                              color: _goals[index]['done']
+                              color: goal.done
                                   ? Colors.black45
                                   : Colors.black,
                             ),
                           ),
                         ),
-                        // 체크박스: 기존 UI 유지 + 외곽선 살아있게
                         Checkbox(
-                          value: _goals[index]['done'],
+                          value: goal.done,
                           onChanged: (val) {
                             setState(() {
-                              _goals[index]['done'] = val;
+                              goal.done = val ?? false;
                             });
                           },
                           fillColor:
                           MaterialStateProperty.resolveWith<Color?>(
                                   (states) {
-                                if (states.contains(MaterialState.selected)) {
-                                  return Colors.blue[300]; // 체크 시 내부 색
+                                if (states
+                                    .contains(MaterialState.selected)) {
+                                  return Colors.blue[300];
                                 }
-                                return null; // 체크 안 했을 때 배경 투명 유지
+                                return null;
                               }),
                           checkColor: Colors.white,
                           side: const BorderSide(
@@ -149,14 +163,14 @@ class _HomeState extends State<Home> {
   }
 
   void _showGoalEditor() {
-    final controller = TextEditingController();
+    _controller.clear(); // 기존 텍스트 초기화
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.white,
         title: const Text("오늘의 목표 작성"),
         content: TextField(
-          controller: controller,
+          controller: _controller,
           maxLines: 6,
           textAlignVertical: TextAlignVertical.top,
           decoration: const InputDecoration(
@@ -173,9 +187,9 @@ class _HomeState extends State<Home> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.blue[300]),
             onPressed: () {
-              if (controller.text.trim().isNotEmpty) {
+              if (_controller.text.trim().isNotEmpty) {
                 Navigator.pop(context);
-                _confirmSave(controller.text.trim());
+                _confirmSave(_controller.text.trim());
               }
             },
             child: const Text('저장', style: TextStyle(color: Colors.black)),
@@ -203,7 +217,7 @@ class _HomeState extends State<Home> {
             style: ElevatedButton.styleFrom(backgroundColor: Colors.blue[300]),
             onPressed: () {
               setState(() {
-                _goals.add({'text': text, 'done': false});
+                _goals.add(Goal(text));
               });
               Navigator.pop(context);
             },
@@ -217,13 +231,14 @@ class _HomeState extends State<Home> {
 
 // 📒 노트 줄 커스텀 페인터
 class _NoteLinePainter extends CustomPainter {
+  static const double lineHeight = 32;
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = Colors.brown.withOpacity(0.3)
       ..strokeWidth = 1;
 
-    double lineHeight = 32;
     for (double y = lineHeight; y < size.height; y += lineHeight) {
       canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
     }

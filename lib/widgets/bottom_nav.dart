@@ -12,7 +12,7 @@ class BottomNav extends StatefulWidget {
 }
 
 class _BottomNavState extends State<BottomNav> {
-  int _currentIndex = 0;
+  int _currentIndex = 1;
 
   // const 사용으로 rebuild 시 메모리 효율
   static const List<Widget> _screens = [
