@@ -124,39 +124,67 @@ class _ProfileState extends State<Profile> {
           ),
           // 하단 최고기록 고정
           Container(
-            color: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+            padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(24),
+                topRight: Radius.circular(24),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, -5),
+                ),
+              ],
+            ),
+            child: Column(
               children: [
-                Column(
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    const Text('벤치프레스'),
-                    Text('$_maxBench kg', style: const TextStyle(fontWeight: FontWeight.bold)),
+                    _buildStatItem('벤치프레스', '$_maxBench kg', Icons.line_weight, Colors.redAccent),
+                    _buildStatItem('스쿼트', '$_maxSquat kg', Icons.accessibility_new, Colors.green),
+                    _buildStatItem('데드리프트', '$_maxDeadlift kg', Icons.straighten, Colors.orange),
                   ],
                 ),
-                Column(
-                  children: [
-                    const Text('스쿼트'),
-                    Text('$_maxSquat kg', style: const TextStyle(fontWeight: FontWeight.bold)),
-                  ],
-                ),
-                Column(
-                  children: [
-                    const Text('데드리프트'),
-                    Text('$_maxDeadlift kg', style: const TextStyle(fontWeight: FontWeight.bold)),
-                  ],
-                ),
-                Column(
-                  children: [
-                    const Text('3대 중량'),
-                    Text('$_total kg', style: const TextStyle(fontWeight: FontWeight.bold)),
-                  ],
-                ),
+                const SizedBox(height: 20),
+                _buildTotalStatCard('3대 중량', '$_total kg'),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildStatItem(String label, String value, IconData icon, Color color) {
+    return Column(
+      children: [
+        Icon(icon, color: color, size: 28),
+        const SizedBox(height: 8),
+        Text(label, style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+        const SizedBox(height: 4),
+        Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+      ],
+    );
+  }
+
+  Widget _buildTotalStatCard(String label, String value) {
+    return Card(
+      elevation: 4,
+      color: Colors.blueAccent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(label, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+            Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+          ],
+        ),
       ),
     );
   }
