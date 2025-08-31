@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
+// 데이터 모델
 class Goal {
   final String text;
   bool done;
   Goal(this.text, {this.done = false});
 }
 
+// 홈 화면
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
 
@@ -30,6 +32,7 @@ class _HomeState extends State<Home> {
     final double progress = total > 0 ? doneCount / total : 0;
 
     return Scaffold(
+      backgroundColor: Colors.grey[100], // 배경색 변경
       appBar: AppBar(
         title: Row(
           children: [
@@ -44,7 +47,7 @@ class _HomeState extends State<Home> {
                 children: const [
                   Icon(Icons.home, color: Colors.green, size: 20),
                   SizedBox(width: 6),
-                  Text('홈', style: TextStyle(color: Colors.green, fontWeight: FontWeight.w600)),
+                  Text('오늘의 목표', style: TextStyle(color: Colors.green, fontWeight: FontWeight.w600)),
                 ],
               ),
             ),
@@ -68,160 +71,62 @@ class _HomeState extends State<Home> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // 목표 노트 영역
-          Expanded(
-            child: Container(
-              margin: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.yellow[100],
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.brown, width: 1),
-              ),
-              child: CustomPaint(
-                painter: _NoteLinePainter(),
-                child: _goals.isEmpty
-                    ? const Center(
-                  child: Text(
-                    "오늘의 목표를 작성하세요",
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.black54,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                )
-                    : ListView.builder(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 25, horizontal: 16),
-                  itemCount: _goals.length,
-                  itemBuilder: (context, index) {
-                    final goal = _goals[index];
-                    return Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const Text(
-                          "• ",
-                          style: TextStyle(
-                            fontSize: 20,
-                            color: Colors.black,
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            goal.text,
-                            style: TextStyle(
-                              fontSize: 16,
-                              decoration: goal.done
-                                  ? TextDecoration.lineThrough
-                                  : null,
-                              color: goal.done
-                                  ? Colors.black45
-                                  : Colors.black,
-                            ),
-                          ),
-                        ),
-                        Checkbox(
-                          value: goal.done,
-                          onChanged: (val) {
-                            setState(() {
-                              goal.done = val ?? false;
-                            });
-                          },
-                          fillColor:
-                          MaterialStateProperty.resolveWith<Color?>(
-                                  (states) {
-                                if (states
-                                    .contains(MaterialState.selected)) {
-                                  return Colors.blue[300];
-                                }
-                                return null;
-                              }),
-                          checkColor: Colors.white,
-                          side: const BorderSide(
-                              color: Colors.black45, width: 1),
-                        ),
-                      ],
-                    );
-                  },
-                ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            // 목표 카드
+            Expanded(
+              child: GoalCard(
+                goals: _goals,
+                onGoalChanged: (index, value) {
+                  setState(() {
+                    _goals[index].done = value;
+                  });
+                },
               ),
             ),
-          ),
-
-          // 퍼센트 바
-          Container(
-            padding: const EdgeInsets.all(8),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Container(
-                  height: 20,
-                  decoration: BoxDecoration(
-                    color: Colors.blueGrey[100],
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                ),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: FractionallySizedBox(
-                    widthFactor: progress,
-                    child: Container(
-                      height: 20,
-                      decoration: BoxDecoration(
-                        color: Colors.blue,
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                    ),
-                  ),
-                ),
-                Text(
-                  "${(progress * 100).toInt()}%",
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+            const SizedBox(height: 20),
+            // 진행률 표시줄
+            ProgressBar(progress: progress),
+          ],
+        ),
       ),
     );
   }
 
   void _showGoalEditor() {
-    _controller.clear(); // 기존 텍스트 초기화
+    _controller.clear();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
-        title: const Text("오늘의 목표 작성"),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        title: const Text("새로운 목표", style: TextStyle(fontWeight: FontWeight.bold)),
         content: TextField(
           controller: _controller,
-          maxLines: 6,
-          textAlignVertical: TextAlignVertical.top,
+          maxLines: 5,
           decoration: const InputDecoration(
-            hintText: '목표를 입력하세요',
+            hintText: '목표를 입력하세요...',
             border: InputBorder.none,
-            alignLabelWithHint: true,
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('취소', style: TextStyle(color: Colors.black)),
+            child: const Text('취소', style: TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue[300]),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blueAccent,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
             onPressed: () {
               if (_controller.text.trim().isNotEmpty) {
                 Navigator.pop(context);
                 _confirmSave(_controller.text.trim());
               }
             },
-            child: const Text('저장', style: TextStyle(color: Colors.black)),
+            child: const Text('추가', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -232,25 +137,28 @@ class _HomeState extends State<Home> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
-        title: const Text("목표 확정"),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        title: const Text("목표 확정", style: TextStyle(fontWeight: FontWeight.bold)),
         content: const Text(
           "한번 저장한 목표는 취소/수정할 수 없습니다.\n정말로 목표를 확정하시겠습니까?",
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("취소", style: TextStyle(color: Colors.black)),
+            child: const Text("취소", style: TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue[300]),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blueAccent,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
             onPressed: () {
               setState(() {
                 _goals.add(Goal(text));
               });
               Navigator.pop(context);
             },
-            child: const Text("확정", style: TextStyle(color: Colors.black)),
+            child: const Text("확정", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -258,21 +166,105 @@ class _HomeState extends State<Home> {
   }
 }
 
-// 📒 노트 줄 커스텀 페인터
-class _NoteLinePainter extends CustomPainter {
-  static const double lineHeight = 32;
+// 목표 카드 UI
+class GoalCard extends StatelessWidget {
+  final List<Goal> goals;
+  final Function(int, bool) onGoalChanged;
+
+  const GoalCard({Key? key, required this.goals, required this.onGoalChanged}) : super(key: key);
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.brown.withOpacity(0.3)
-      ..strokeWidth = 1;
-
-    for (double y = lineHeight; y < size.height; y += lineHeight) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: goals.isEmpty
+          ? const Center(
+        child: Text(
+          "목표를 추가하여 하루를 계획하세요!",
+          style: TextStyle(color: Colors.grey, fontSize: 16),
+        ),
+      )
+          : ListView.separated(
+        padding: const EdgeInsets.all(16),
+        itemCount: goals.length,
+        itemBuilder: (context, index) {
+          final goal = goals[index];
+          return GoalTile(
+            goal: goal,
+            onChanged: (value) => onGoalChanged(index, value!),
+          );
+        },
+        separatorBuilder: (context, index) => const Divider(),
+      ),
+    );
   }
+}
+
+// 개별 목표 타일
+class GoalTile extends StatelessWidget {
+  final Goal goal;
+  final ValueChanged<bool?> onChanged;
+
+  const GoalTile({Key? key, required this.goal, required this.onChanged}) : super(key: key);
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  Widget build(BuildContext context) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: Checkbox(
+        value: goal.done,
+        onChanged: onChanged,
+        activeColor: Colors.blueAccent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+      ),
+      title: Text(
+        goal.text,
+        style: TextStyle(
+          fontSize: 16,
+          decoration: goal.done ? TextDecoration.lineThrough : null,
+          color: goal.done ? Colors.grey : Colors.black,
+        ),
+      ),
+    );
+  }
+}
+
+// 진행률 표시줄 UI
+class ProgressBar extends StatelessWidget {
+  final double progress;
+
+  const ProgressBar({Key? key, required this.progress}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '달성률: ${(progress * 100).toInt()}%',
+          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: LinearProgressIndicator(
+            value: progress,
+            minHeight: 12,
+            backgroundColor: Colors.grey[300],
+            valueColor: const AlwaysStoppedAnimation<Color>(Colors.blueAccent),
+          ),
+        ),
+      ],
+    );
+  }
 }
