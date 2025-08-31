@@ -40,8 +40,8 @@ class _BottomNavState extends State<BottomNav> {
           label: '홈',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.settings),
-          label: '설정',
+          icon: Icon(Icons.bar_chart),
+          label: '차트',
         ),
       ],
     );
