@@ -31,11 +31,40 @@ class _HomeState extends State<Home> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("홈 화면"),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.green.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  Icon(Icons.home, color: Colors.green, size: 20),
+                  SizedBox(width: 6),
+                  Text('홈', style: TextStyle(color: Colors.green, fontWeight: FontWeight.w600)),
+                ],
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        shadowColor: Colors.transparent,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: _showGoalEditor,
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            decoration: BoxDecoration(
+              color: Colors.grey.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.edit_outlined, color: Colors.grey),
+              iconSize: 22,
+              onPressed: _showGoalEditor,
+            ),
           ),
         ],
       ),

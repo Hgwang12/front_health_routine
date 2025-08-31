@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import '../widgets/stat_chart.dart';
 
 class Profile extends StatefulWidget {
   const Profile({Key? key}) : super(key: key);
@@ -11,27 +12,71 @@ class Profile extends StatefulWidget {
 class _ProfileState extends State<Profile> {
   int _selectedIndex = 0;
 
-  final List<String> _labels = ['벤치프레스', '스쿼트', '데드리프트'];
+  static const List<String> _labels = ['벤치프레스', '스쿼트', '데드리프트'];
 
-  final List<List<FlSpot>> _mockData = [
+  static const List<List<FlSpot>> _mockData = [
     [FlSpot(1, 60), FlSpot(2, 65), FlSpot(3, 70), FlSpot(4, 75)],
     [FlSpot(1, 80), FlSpot(2, 85), FlSpot(3, 90), FlSpot(4, 95)],
     [FlSpot(1, 100), FlSpot(2, 105), FlSpot(3, 110), FlSpot(4, 115)],
   ];
 
-  int get _maxBench => _mockData[0].map((e) => e.y.toInt()).reduce((a, b) => a > b ? a : b);
-  int get _maxSquat => _mockData[1].map((e) => e.y.toInt()).reduce((a, b) => a > b ? a : b);
-  int get _maxDeadlift => _mockData[2].map((e) => e.y.toInt()).reduce((a, b) => a > b ? a : b);
-  int get _total => _maxBench + _maxSquat + _maxDeadlift;
+  late final int _maxBench;
+  late final int _maxSquat;
+  late final int _maxDeadlift;
+  late final int _total;
+
+  @override
+  void initState() {
+    super.initState();
+    _maxBench = _mockData[0].map((e) => e.y.toInt()).reduce((a, b) => a > b ? a : b);
+    _maxSquat = _mockData[1].map((e) => e.y.toInt()).reduce((a, b) => a > b ? a : b);
+    _maxDeadlift = _mockData[2].map((e) => e.y.toInt()).reduce((a, b) => a > b ? a : b);
+    _total = _maxBench + _maxSquat + _maxDeadlift;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('설정 화면'), // 상단바 텍스트 추가
-        backgroundColor: Colors.white,  // 원하는 색상 적용 가능
-        elevation: 2,
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  Icon(Icons.bar_chart, color: Colors.blue, size: 20),
+                  SizedBox(width: 6),
+                  Text('차트', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.w600)),
+                ],
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        shadowColor: Colors.transparent,
+        actions: [
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            decoration: BoxDecoration(
+              color: Colors.grey.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.settings_outlined, color: Colors.grey),
+              iconSize: 22,
+              onPressed: () {
+                // 설정 페이지로 이동 또는 설정 메뉴 표시
+              },
+            ),
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -69,79 +114,12 @@ class _ProfileState extends State<Profile> {
             }),
           ),
           const SizedBox(height: 16),
-          // 차트 영역 (상단바 아래로)
+          // 차트 영역
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 4,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: LineChart(
-                  LineChartData(
-                    minY: 20,
-                    maxY: _mockData[_selectedIndex]
-                        .map((e) => e.y)
-                        .reduce((a, b) => a > b ? a : b) + 40,
-                    gridData: FlGridData(show: true),
-                    borderData: FlBorderData(
-                      show: true,
-                      border: const Border(
-                        left: BorderSide(color: Colors.black26),
-                        bottom: BorderSide(color: Colors.black26),
-                        top: BorderSide(color: Colors.transparent),
-                        right: BorderSide(color: Colors.transparent),
-                      ),
-                    ),
-                    titlesData: FlTitlesData(
-                      leftTitles: AxisTitles(
-                        axisNameWidget: const Text('중량(kg)'),
-                        axisNameSize: 24,
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          reservedSize: 40,
-                          interval: 10,
-                          getTitlesWidget: (value, meta) => Text(value.toInt().toString()),
-                        ),
-                      ),
-                      bottomTitles: AxisTitles(
-                        axisNameWidget: const Text('주차'),
-                        axisNameSize: 24,
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          reservedSize: 24,
-                          interval: 1,
-                          getTitlesWidget: (value, meta) => Text(value.toInt().toString()),
-                        ),
-                      ),
-                      topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)), // 삭제
-                      rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)), // 삭제
-                    ),
-                    lineBarsData: [
-                      LineChartBarData(
-                        spots: _mockData[_selectedIndex],
-                        isCurved: true,
-                        color: _selectedIndex == 0
-                            ? Colors.red
-                            : _selectedIndex == 1
-                            ? Colors.green
-                            : Colors.orange,
-                        barWidth: 3,
-                        dotData: FlDotData(show: true),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+            child: StatChart(
+              selectedIndex: _selectedIndex,
+              labels: _labels,
+              data: _mockData,
             ),
           ),
           // 하단 최고기록 고정
